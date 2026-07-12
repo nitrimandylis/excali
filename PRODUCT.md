@@ -8,11 +8,24 @@ Not a viewer and not a reimplementation — it's the genuine Excalidraw web app.
 server: the drawing opens in your browser (crisp, native trackpad) while the
 terminal stays running as the server.
 
+## Install
+
+```sh
+./install.sh
+```
+
+Compiles a standalone binary to `~/.bun/bin/excali` (the host page is embedded,
+so it's self-contained) and installs the man page into your Homebrew manpath.
+Then `excali <file>` and `man excali` work from anywhere.
+
 ## Usage
 
 ```sh
-./excali drawing.excalidraw    # or, after `bun link`, just: excali drawing.excalidraw
+excali drawing.excalidraw       # after install.sh
+./excali.ts drawing.excalidraw  # or run straight from source with Bun
 ```
+
+Set `EXCALI_NO_OPEN=1` to skip launching the browser (headless).
 
 Draw with the mouse; edits save back to the file automatically (~500ms after
 you stop). A path that doesn't exist yet starts a blank canvas and is created

@@ -7,8 +7,11 @@
 import { mkdir, rename } from "fs/promises";
 import { homedir } from "os";
 import { dirname, join } from "path";
-
-const HERE = dirname(new URL(import.meta.url).pathname);
+// Embed the host page into the script so `bun build --compile` bundles it into
+// the standalone binary (there's no index.html on disk next to a compiled exe).
+// `type: "text"` serves it verbatim — do NOT let Bun's HTML loader bundle it,
+// since it loads Excalidraw from a CDN via an import map.
+import indexHtml from "./index.html" with { type: "text" };
 
 // Global config (theme, prefs, library) — shared across every drawing.
 // Overridable via EXCALIDRAW_TUI_CONFIG (used by the test).
@@ -62,7 +65,10 @@ export function serve(file: string) {
     async fetch(req) {
       const path = new URL(req.url).pathname;
       if (req.method === "GET") {
-        if (path === "/") return new Response(Bun.file(join(HERE, "index.html")));
+        if (path === "/")
+          return new Response(indexHtml, {
+            headers: { "Content-Type": "text/html; charset=utf-8" },
+          });
         if (path === "/scene") return json(await readOr(file, "null"));
         if (path === "/config") return json(await readOr(configPath(), "{}"));
       }
@@ -106,8 +112,11 @@ if (import.meta.main) {
 
   const server = serve(arg);
   const url = `http://127.0.0.1:${server.port}/`;
-  const opener = process.platform === "darwin" ? "open" : "xdg-open";
-  Bun.spawn([opener, url]);
+  // EXCALI_NO_OPEN skips launching the browser (headless / testing).
+  if (!process.env.EXCALI_NO_OPEN) {
+    const opener = process.platform === "darwin" ? "open" : "xdg-open";
+    Bun.spawn([opener, url]);
+  }
 
   console.log(`Excalidraw is open in your browser — edits autosave to ${arg}`);
   console.log("Press Ctrl-C here to stop.");
