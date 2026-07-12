@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# excli <file.excalidraw> — open a drawing in the real Excalidraw, in your terminal.
+set -euo pipefail
+
+if [ $# -lt 1 ]; then
+  echo "usage: excli <file.excalidraw>" >&2
+  exit 1
+fi
+
+file="$1"
+# New file -> create it empty so the path resolves. The server serves a blank
+# canvas for an empty file; the first save writes real content.
+[ -e "$file" ] || : >"$file"
+
+here="$(cd "$(dirname "$0")" && pwd)"
+carbonyl="$here/node_modules/.bin/carbonyl"
+
+if [ ! -x "$carbonyl" ]; then
+  echo "carbonyl not installed — run: npm install" >&2
+  exit 1
+fi
+
+# Start the server in the background; it prints its chosen port to this file.
+# (tempfile + poll instead of coproc, so this works on macOS's bash 3.2.)
+portfile="$(mktemp)"
+python3 "$here/server.py" "$file" >"$portfile" &
+server_pid=$!
+
+cleanup() { kill "$server_pid" 2>/dev/null || true; rm -f "$portfile"; }
+trap cleanup EXIT INT TERM
+
+# Wait (up to ~5s) for the server to report its port.
+port=""
+for _ in $(seq 1 50); do
+  port="$(cat "$portfile")"
+  [ -n "$port" ] && break
+  sleep 0.1
+done
+if [ -z "$port" ]; then
+  echo "server didn't start" >&2
+  exit 1
+fi
+
+"$carbonyl" "http://127.0.0.1:$port/"

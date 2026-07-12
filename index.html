@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>excalidraw-tui</title>
+    <!-- Excalidraw + React come from the CDN (esm.sh). ponytail: needs internet;
+         offline would mean vendoring a bundled build. -->
+    <link
+      rel="stylesheet"
+      href="https://esm.sh/@excalidraw/excalidraw@0.18.0/dist/dev/index.css"
+    />
+    <style>
+      html,
+      body,
+      #app {
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+    <script>
+      // Where Excalidraw loads its fonts/assets from.
+      window.EXCALIDRAW_ASSET_PATH =
+        "https://esm.sh/@excalidraw/excalidraw@0.18.0/dist/prod/";
+    </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@19.0.0",
+          "react/jsx-runtime": "https://esm.sh/react@19.0.0/jsx-runtime",
+          "react-dom": "https://esm.sh/react-dom@19.0.0",
+          "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+          "@excalidraw/excalidraw": "https://esm.sh/@excalidraw/excalidraw@0.18.0?external=react,react-dom"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+      import { Excalidraw, serializeAsJSON } from "@excalidraw/excalidraw";
+
+      // The scene the server is bound to. `null` = new/empty file → blank canvas.
+      const scene = await fetch("/scene").then((r) => r.json());
+
+      let timer = null;
+      function onChange(elements, appState, files) {
+        // Excalidraw fires onChange on every pointer move; only save ~500ms after
+        // the last change. ponytail: a hard kill can drop the last <500ms of
+        // edits — flush-on-exit is the upgrade path.
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          const json = serializeAsJSON(elements, appState, files, "local");
+          fetch("/scene", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: json,
+          });
+        }, 500);
+      }
+
+      const root = createRoot(document.getElementById("app"));
+      root.render(
+        React.createElement(Excalidraw, { initialData: scene, onChange })
+      );
+    </script>
+  </body>
+</html>
