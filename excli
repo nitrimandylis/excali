@@ -5,6 +5,30 @@
 #     --tui    renders in this terminal via Carbonyl — blocky; for SSH/headless.
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+excli — open a .excalidraw file in the real Excalidraw, autosaving to the file.
+
+Usage:
+  excli <file.excalidraw>          Open in your browser (crisp, native trackpad).
+  excli --tui <file.excalidraw>    Render in this terminal via Carbonyl (blocky;
+                                   for SSH/headless — needs: npm install).
+  excli -h | --help                Show this help.
+
+Notes:
+  - A path that doesn't exist yet starts a blank canvas, created on first save.
+  - Edits autosave ~500ms after you stop drawing.
+  - In browser mode this terminal stays running as the autosave server; leave it
+    open while editing and press Ctrl-C when done.
+  - Theme, prefs, and libraries persist in ~/.config/excalidraw-tui/config.json.
+EOF
+}
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  usage
+  exit 0
+fi
+
 tui=0
 if [ "${1:-}" = "--tui" ]; then
   tui=1
@@ -12,7 +36,7 @@ if [ "${1:-}" = "--tui" ]; then
 fi
 
 if [ $# -lt 1 ]; then
-  echo "usage: excli [--tui] <file.excalidraw>" >&2
+  usage >&2
   exit 1
 fi
 
