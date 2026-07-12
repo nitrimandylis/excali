@@ -64,5 +64,6 @@ for `--tui`).
 
 ## Status
 
-v0.1 — works end to end: open, edit, autosave. Server round-trip and the
-"malformed POST can't corrupt the file" guard are covered by `test_server.py`.
+v1 — done. Open, edit, and autosave confirmed working in browser mode. Server
+round-trip and the "malformed POST can't corrupt the file" guard are covered by
+`test_server.py`.
