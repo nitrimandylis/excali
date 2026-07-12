@@ -40,7 +40,11 @@
     <script type="module">
       import React from "react";
       import { createRoot } from "react-dom/client";
-      import { Excalidraw, serializeAsJSON } from "@excalidraw/excalidraw";
+      import {
+        Excalidraw,
+        MainMenu,
+        serializeAsJSON,
+      } from "@excalidraw/excalidraw";
 
       // Two things load: the drawing (per-file) and the global config (theme,
       // prefs, library — shared across every drawing).
@@ -116,9 +120,33 @@
         scrollToContent: !!(scene && scene.elements && scene.elements.length),
       };
 
+      // The embedded component ships a minimal menu; the excalidraw.com webapp
+      // adds its own chrome. Rebuild a fuller menu from the component's own
+      // default items. CommandPalette + SearchMenu expose every command (zen,
+      // grid, view mode, snap, tool lock, ...) that the webapp's menu shows.
+      // Filter by what exists in this version so a renamed item can't crash.
+      const DI = MainMenu.DefaultItems;
+      const order = [
+        "SearchMenu",
+        "CommandPalette",
+        "Export",
+        "SaveAsImage",
+        "ChangeCanvasBackgroundColor",
+        "ToggleTheme",
+        "Help",
+        "Socials",
+      ];
+      const menuItems = order
+        .filter((name) => DI[name])
+        .map((name) => React.createElement(DI[name], { key: name }));
+
       const root = createRoot(document.getElementById("app"));
       root.render(
-        React.createElement(Excalidraw, { initialData, onChange, onLibraryChange })
+        React.createElement(
+          Excalidraw,
+          { initialData, onChange, onLibraryChange },
+          React.createElement(MainMenu, null, ...menuItems)
+        )
       );
     </script>
   </body>
