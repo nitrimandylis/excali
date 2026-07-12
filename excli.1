@@ -1,0 +1,85 @@
+.TH EXCLI 1 "2026-07-12" "excalidraw-tui" "User Commands"
+.SH NAME
+excli \- open a .excalidraw file in the real Excalidraw, autosaving to the file
+.SH SYNOPSIS
+.B excli
+.RB [ \-\-tui ]
+.I file.excalidraw
+.br
+.B excli
+.RB [ \-h | \-\-help ]
+.SH DESCRIPTION
+.B excli
+opens a drawing in the genuine Excalidraw web app and saves your edits back to
+.I file.excalidraw
+automatically. The terminal acts as the launcher and a small autosave server;
+the drawing itself opens in your browser.
+.PP
+If
+.I file.excalidraw
+does not exist yet, a blank canvas is started and the file is created on the
+first save. Edits autosave roughly 500ms after you stop drawing.
+.SH OPTIONS
+.TP
+.B \-\-tui
+Render the app inside this terminal via Carbonyl (Chromium in a terminal)
+instead of opening a browser. Needs
+.B npm install
+first for the Carbonyl binary. It paints at terminal\-cell resolution \(em
+blocky, best kept for SSH or headless boxes with no browser.
+.TP
+.BR \-h ", " \-\-help
+Print usage and exit.
+.SH MODES
+In the default browser mode this terminal stays running as the autosave server:
+leave it open while you edit and press
+.B Ctrl\-C
+when you are done. In
+.B \-\-tui
+mode, quitting Carbonyl ends the session.
+.SH FILES
+.TP
+.I file.excalidraw
+The drawing being edited. Holds the elements you draw.
+.TP
+.I ~/.config/excalidraw\-tui/config.json
+Global config shared across all drawings: UI preferences (theme, canvas
+background, zen/view mode, grid, snap) and your imported libraries. Global
+preferences override whatever a drawing was saved with, so settings like dark
+mode persist across reloads. Honors
+.BR XDG_CONFIG_HOME .
+.SH ENVIRONMENT
+.TP
+.B XDG_CONFIG_HOME
+Base directory for the global config file. Defaults to
+.IR ~/.config .
+.SH REQUIREMENTS
+Python 3, a browser, and internet access (Excalidraw and React load from the
+esm.sh CDN). The
+.B \-\-tui
+mode additionally needs the Carbonyl binary via
+.BR "npm install" ,
+on macOS arm64 or Linux.
+.SH EXAMPLES
+.TP
+Open a drawing in the browser:
+.B excli diagram.excalidraw
+.TP
+Start a new drawing (created on first save):
+.B excli new-sketch.excalidraw
+.TP
+Render inside the terminal over SSH:
+.B excli \-\-tui diagram.excalidraw
+.SH EXIT STATUS
+.TP
+.B 0
+Help was requested, or the session ended normally.
+.TP
+.B 1
+Bad usage, or the autosave server failed to start.
+.SH SEE ALSO
+Project docs in
+.IR PRODUCT.md .
+Excalidraw: https://excalidraw.com
+.br
+Carbonyl: https://github.com/fathyb/carbonyl
