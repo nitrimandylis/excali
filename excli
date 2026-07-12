@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
-# excli <file.excalidraw> — open a drawing in the real Excalidraw, in your terminal.
+# excli [--tui] <file.excalidraw>
+#   Open a drawing in the real Excalidraw, autosaving edits back to the file.
+#     default  opens in your browser — crisp, native trackpad pan/zoom.
+#     --tui    renders in this terminal via Carbonyl — blocky; for SSH/headless.
 set -euo pipefail
 
+tui=0
+if [ "${1:-}" = "--tui" ]; then
+  tui=1
+  shift
+fi
+
 if [ $# -lt 1 ]; then
-  echo "usage: excli <file.excalidraw>" >&2
+  echo "usage: excli [--tui] <file.excalidraw>" >&2
   exit 1
 fi
 
@@ -13,12 +22,6 @@ file="$1"
 [ -e "$file" ] || : >"$file"
 
 here="$(cd "$(dirname "$0")" && pwd)"
-carbonyl="$here/node_modules/.bin/carbonyl"
-
-if [ ! -x "$carbonyl" ]; then
-  echo "carbonyl not installed — run: npm install" >&2
-  exit 1
-fi
 
 # Start the server in the background; it prints its chosen port to this file.
 # (tempfile + poll instead of coproc, so this works on macOS's bash 3.2.)
@@ -41,4 +44,28 @@ if [ -z "$port" ]; then
   exit 1
 fi
 
-"$carbonyl" "http://127.0.0.1:$port/"
+url="http://127.0.0.1:$port/"
+
+if [ "$tui" -eq 1 ]; then
+  # Terminal mode: Carbonyl runs in the foreground and blocks until you quit,
+  # which keeps the server alive for the session.
+  carbonyl="$here/node_modules/.bin/carbonyl"
+  if [ ! -x "$carbonyl" ]; then
+    echo "carbonyl not installed — run: npm install" >&2
+    exit 1
+  fi
+  "$carbonyl" "$url"
+else
+  # Browser mode: open the URL, then keep this terminal alive as the autosave
+  # server until you Ctrl-C.
+  if command -v open >/dev/null 2>&1; then
+    open "$url"
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url"
+  else
+    echo "open this in your browser: $url"
+  fi
+  echo "Excalidraw is open in your browser — edits autosave to $file"
+  echo "Press Ctrl-C here to stop."
+  wait "$server_pid"
+fi

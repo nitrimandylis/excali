@@ -1,24 +1,31 @@
 # excalidraw-tui
 
-Run the **real** Excalidraw inside your terminal, and open a `.excalidraw`
-file straight from the CLI with edits auto-saved back to that file.
+Open a `.excalidraw` file straight from the terminal in the **real** Excalidraw,
+with edits auto-saved back to that file.
 
-Not a viewer and not a reimplementation — it's the genuine Excalidraw web app,
-rendered to the terminal by [Carbonyl](https://github.com/fathyb/carbonyl)
-(Chromium in a terminal). All the hard parts — the canvas, tools, rendering —
-are borrowed.
+Not a viewer and not a reimplementation — it's the genuine Excalidraw web app.
+The terminal is the launcher and the autosave server; the drawing itself opens
+in your browser (crisp, native trackpad).
+
+There's also a `--tui` mode that renders the app *inside* the terminal via
+[Carbonyl](https://github.com/fathyb/carbonyl) (Chromium in a terminal). It
+works and needs no browser, but paints at terminal-cell resolution — blocky,
+best kept for SSH/headless boxes where no browser is available.
 
 ## Usage
 
 ```sh
-npm install          # one-time: pulls the Carbonyl (Chromium) binary
-./excli drawing.excalidraw
+./excli drawing.excalidraw          # opens in your browser (recommended)
+./excli --tui drawing.excalidraw    # renders in the terminal (needs: npm install)
 ```
 
-Opens `drawing.excalidraw` in Excalidraw in your terminal. Draw with the
-mouse; edits save back to the file automatically (~500ms after you stop).
-A path that doesn't exist yet starts a blank canvas and is created on first
-save.
+Draw with the mouse; edits save back to the file automatically (~500ms after
+you stop). A path that doesn't exist yet starts a blank canvas and is created
+on first save.
+
+In browser mode the terminal stays running as the autosave server — leave it
+open while you edit and press **Ctrl-C** when you're done. Only `--tui` needs
+`npm install` (for the Carbonyl binary); browser mode needs only Python 3.
 
 ## How it works
 
@@ -28,7 +35,7 @@ excli file.excalidraw
        GET /        → index.html
        GET /scene   → file.excalidraw JSON  (null if new/empty → blank canvas)
        POST /scene  → write file.excalidraw
-  └─ carbonyl http://127.0.0.1:PORT/
+  └─ browser (default) or carbonyl (--tui) → http://127.0.0.1:PORT/
        └─ index.html loads Excalidraw from esm.sh
             initialData ← GET /scene
             onChange (debounced 500ms) → POST /scene  (Excalidraw's own serializer)
@@ -36,20 +43,23 @@ excli file.excalidraw
 
 Four files: `excli` (wrapper), `server.py` (stdlib server + autosave),
 `index.html` (Excalidraw host page), `test_server.py`. Excalidraw and React
-load from the esm.sh CDN, so the only npm dependency is Carbonyl.
+load from the esm.sh CDN, so the only npm dependency is Carbonyl (needed only
+for `--tui`).
 
 ## Requirements
 
-- macOS arm64 or Linux (Carbonyl ships native binaries per platform)
-- Python 3
-- Internet (Excalidraw/React load from esm.sh)
+- Python 3, a browser, internet (Excalidraw/React load from esm.sh)
+- `--tui` only: macOS arm64 or Linux (Carbonyl ships native binaries per
+  platform), via `npm install`
 
 ## Known limits
 
 - **Autosave debounce:** a hard kill can drop the last <500ms of edits.
   Upgrade path: flush on exit.
-- **Keyboard shortcuts:** Carbonyl forwards most but not all of Excalidraw's
-  shortcuts. Upgrade path: a keymap shim.
+- **`--tui` resolution:** Carbonyl paints at terminal-cell resolution — blocky,
+  and inherent (no image protocol). Browser mode is the crisp path.
+- **`--tui` panning:** Carbonyl doesn't reliably forward trackpad scroll to
+  Excalidraw's canvas pan. Browser mode has native trackpad.
 - **Offline:** not supported (CDN). Upgrade path: vendor a bundled Excalidraw.
 
 ## Status
