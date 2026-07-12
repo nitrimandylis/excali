@@ -3,7 +3,6 @@
 excali \- open a .excalidraw file in the real Excalidraw, autosaving to the file
 .SH SYNOPSIS
 .B excali
-.RB [ \-\-tui ]
 .I file.excalidraw
 .br
 .B excali
@@ -12,8 +11,11 @@ excali \- open a .excalidraw file in the real Excalidraw, autosaving to the file
 .B excali
 opens a drawing in the genuine Excalidraw web app and saves your edits back to
 .I file.excalidraw
-automatically. The terminal acts as the launcher and a small autosave server;
-the drawing itself opens in your browser.
+automatically. It is a single Bun script that is both the CLI and a small local
+autosave server: the drawing opens in your browser, and this terminal stays
+running as the server. Leave it open while you edit and press
+.B Ctrl\-C
+when you are done.
 .PP
 If
 .I file.excalidraw
@@ -21,22 +23,8 @@ does not exist yet, a blank canvas is started and the file is created on the
 first save. Edits autosave roughly 500ms after you stop drawing.
 .SH OPTIONS
 .TP
-.B \-\-tui
-Render the app inside this terminal via Carbonyl (Chromium in a terminal)
-instead of opening a browser. Needs
-.B npm install
-first for the Carbonyl binary. It paints at terminal\-cell resolution \(em
-blocky, best kept for SSH or headless boxes with no browser.
-.TP
 .BR \-h ", " \-\-help
 Print usage and exit.
-.SH MODES
-In the default browser mode this terminal stays running as the autosave server:
-leave it open while you edit and press
-.B Ctrl\-C
-when you are done. In
-.B \-\-tui
-mode, quitting Carbonyl ends the session.
 .SH FILES
 .TP
 .I file.excalidraw
@@ -54,12 +42,8 @@ mode persist across reloads. Honors
 Base directory for the global config file. Defaults to
 .IR ~/.config .
 .SH REQUIREMENTS
-Python 3, a browser, and internet access (Excalidraw and React load from the
-esm.sh CDN). The
-.B \-\-tui
-mode additionally needs the Carbonyl binary via
-.BR "npm install" ,
-on macOS arm64 or Linux.
+Bun, a browser, and internet access (Excalidraw and React load from the esm.sh
+CDN). No other dependencies.
 .SH EXAMPLES
 .TP
 Open a drawing in the browser:
@@ -67,19 +51,20 @@ Open a drawing in the browser:
 .TP
 Start a new drawing (created on first save):
 .B excali new-sketch.excalidraw
-.TP
-Render inside the terminal over SSH:
-.B excali \-\-tui diagram.excalidraw
 .SH EXIT STATUS
 .TP
 .B 0
 Help was requested, or the session ended normally.
 .TP
 .B 1
-Bad usage, or the autosave server failed to start.
+Bad usage.
 .SH SEE ALSO
 Project docs in
 .IR PRODUCT.md .
-Excalidraw: https://excalidraw.com
 .br
-Carbonyl: https://github.com/fathyb/carbonyl
+Excalidraw: https://excalidraw.com
+.SH NOTES
+Earlier versions had a
+.B \-\-tui
+mode that rendered inside the terminal via Carbonyl; it was dropped because
+terminal\-cell rendering was too coarse for a drawing tool.

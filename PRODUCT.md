@@ -4,38 +4,34 @@ Open a `.excalidraw` file straight from the terminal in the **real** Excalidraw,
 with edits auto-saved back to that file.
 
 Not a viewer and not a reimplementation — it's the genuine Excalidraw web app.
-The terminal is the launcher and the autosave server; the drawing itself opens
-in your browser (crisp, native trackpad).
-
-There's also a `--tui` mode that renders the app *inside* the terminal via
-[Carbonyl](https://github.com/fathyb/carbonyl) (Chromium in a terminal). It
-works and needs no browser, but paints at terminal-cell resolution — blocky,
-best kept for SSH/headless boxes where no browser is available.
+`excali` is a single Bun script that is both the CLI and a small local autosave
+server: the drawing opens in your browser (crisp, native trackpad) while the
+terminal stays running as the server.
 
 ## Usage
 
 ```sh
-./excali drawing.excalidraw          # opens in your browser (recommended)
-./excali --tui drawing.excalidraw    # renders in the terminal (needs: npm install)
+./excali drawing.excalidraw    # or, after `bun link`, just: excali drawing.excalidraw
 ```
 
 Draw with the mouse; edits save back to the file automatically (~500ms after
 you stop). A path that doesn't exist yet starts a blank canvas and is created
 on first save.
 
-In browser mode the terminal stays running as the autosave server — leave it
-open while you edit and press **Ctrl-C** when you're done. Only `--tui` needs
-`npm install` (for the Carbonyl binary); browser mode needs only Python 3.
+The terminal stays running as the autosave server — leave it open while you
+edit and press **Ctrl-C** when you're done.
 
 ## How it works
 
 ```
-excali file.excalidraw
-  └─ server.py (127.0.0.1:PORT, bound to file.excalidraw)
-       GET /        → index.html
-       GET /scene   → file.excalidraw JSON  (null if new/empty → blank canvas)
-       POST /scene  → write file.excalidraw
-  └─ browser (default) or carbonyl (--tui) → http://127.0.0.1:PORT/
+excali file.excalidraw               (one Bun script: CLI + server)
+  ├─ Bun.serve (127.0.0.1:PORT, bound to file.excalidraw)
+  │    GET /        → index.html
+  │    GET /scene   → file.excalidraw JSON  (null if new/empty → blank canvas)
+  │    GET /config  → global config JSON    ({} if unset)
+  │    POST /scene  → write file.excalidraw
+  │    POST /config → write global config
+  └─ opens the browser at http://127.0.0.1:PORT/
        └─ index.html loads Excalidraw from esm.sh
             initialData ← GET /scene + GET /config
             onChange       (debounced) → POST /scene   (drawing, per-file)
@@ -53,29 +49,23 @@ excali file.excalidraw
 Which prefs persist is a whitelist (`PREF_KEYS` in `index.html`) — add a key to
 keep another setting.
 
-Four files: `excali` (wrapper), `server.py` (stdlib server + autosave),
-`index.html` (Excalidraw host page), `test_server.py`. Excalidraw and React
-load from the esm.sh CDN, so the only npm dependency is Carbonyl (needed only
-for `--tui`).
+Two code files: `excali.ts` (CLI + server) and `index.html` (Excalidraw host
+page), plus `excali.test.ts`. Excalidraw and React load from the esm.sh CDN, so
+there are **no dependencies** — just Bun.
 
 ## Requirements
 
-- Python 3, a browser, internet (Excalidraw/React load from esm.sh)
-- `--tui` only: macOS arm64 or Linux (Carbonyl ships native binaries per
-  platform), via `npm install`
+- Bun, a browser, internet (Excalidraw/React load from esm.sh)
 
 ## Known limits
 
 - **Autosave debounce:** a hard kill can drop the last <500ms of edits.
   Upgrade path: flush on exit.
-- **`--tui` resolution:** Carbonyl paints at terminal-cell resolution — blocky,
-  and inherent (no image protocol). Browser mode is the crisp path.
-- **`--tui` panning:** Carbonyl doesn't reliably forward trackpad scroll to
-  Excalidraw's canvas pan. Browser mode has native trackpad.
 - **Offline:** not supported (CDN). Upgrade path: vendor a bundled Excalidraw.
 
 ## Status
 
-v1 — done. Open, edit, and autosave confirmed working in browser mode. Server
-round-trip and the "malformed POST can't corrupt the file" guard are covered by
-`test_server.py`.
+v2 — Bun rewrite: one dependency-free script replaces the old bash + Python +
+Carbonyl setup. Open, edit, and autosave confirmed working. Scene + config
+round-trips and the "malformed POST can't corrupt the file" guard are covered
+by `excali.test.ts` (`bun test`).

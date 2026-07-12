@@ -1,12 +1,13 @@
 {
   "name": "excalidraw-tui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Run the real Excalidraw in your terminal via Carbonyl, with autosave back to the file.",
+  "type": "module",
+  "description": "Open .excalidraw files from the terminal in the real Excalidraw, with autosave. One Bun script, zero dependencies.",
   "bin": {
-    "excali": "./excali"
+    "excali": "./excali.ts"
   },
-  "dependencies": {
-    "carbonyl": "0.0.2-next.bacf3db"
+  "scripts": {
+    "test": "bun test"
   }
 }
