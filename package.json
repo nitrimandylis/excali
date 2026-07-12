@@ -1,14 +1,18 @@
 {
-  "name": "excalidraw-tui",
+  "name": "excali",
   "version": "0.2.0",
   "private": true,
-  "type": "module",
   "license": "MIT",
-  "description": "Open .excalidraw files from the terminal in the real Excalidraw, with autosave. One Bun script, zero dependencies.",
+  "type": "module",
+  "description": "Open .excalidraw files from the terminal in the real Excalidraw, with autosave. One dependency-free Bun script.",
   "bin": {
     "excali": "./excali.ts"
   },
   "scripts": {
+    "compile": "bun build --compile excali.ts --outfile ~/.bun/bin/excali && mkdir -p $(brew --prefix)/share/man/man1 && cp man/excali.1 $(brew --prefix)/share/man/man1/",
     "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14"
   }
 }

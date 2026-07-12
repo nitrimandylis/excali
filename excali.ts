@@ -14,12 +14,12 @@ import { dirname, join } from "path";
 import indexHtml from "./index.html" with { type: "text" };
 
 // Global config (theme, prefs, library) — shared across every drawing.
-// Overridable via EXCALIDRAW_TUI_CONFIG (used by the test).
+// Overridable via EXCALI_CONFIG (used by the test).
 function configPath(): string {
-  const override = process.env.EXCALIDRAW_TUI_CONFIG;
+  const override = process.env.EXCALI_CONFIG;
   if (override) return override;
   const base = process.env.XDG_CONFIG_HOME || join(homedir(), ".config");
-  return join(base, "excalidraw-tui", "config.json");
+  return join(base, "excali", "config.json");
 }
 
 // File contents, or `fallback` for a missing/empty file.
@@ -92,7 +92,7 @@ Notes:
   - Edits autosave ~500ms after you stop drawing.
   - This terminal stays running as the autosave server; leave it open while
     editing and press Ctrl-C when done.
-  - Theme, prefs, and libraries persist in ~/.config/excalidraw-tui/config.json.
+  - Theme, prefs, and libraries persist in ~/.config/excali/config.json.
 `;
 
 if (import.meta.main) {

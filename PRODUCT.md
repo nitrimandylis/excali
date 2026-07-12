@@ -1,4 +1,4 @@
-# excalidraw-tui
+# excali
 
 Open a `.excalidraw` file straight from the terminal in the **real** Excalidraw,
 with edits auto-saved back to that file.
@@ -11,7 +11,7 @@ terminal stays running as the server.
 ## Install
 
 ```sh
-./install.sh
+bun run compile
 ```
 
 Compiles a standalone binary to `~/.bun/bin/excali` (the host page is embedded,
@@ -21,7 +21,7 @@ Then `excali <file>` and `man excali` work from anywhere.
 ## Usage
 
 ```sh
-excali drawing.excalidraw       # after install.sh
+excali drawing.excalidraw       # after `bun run compile`
 ./excali.ts drawing.excalidraw  # or run straight from source with Bun
 ```
 
@@ -54,7 +54,7 @@ excali file.excalidraw               (one Bun script: CLI + server)
 ## Persistence
 
 - **Per-drawing** → the `.excalidraw` file: the elements you draw.
-- **Global** → `~/.config/excalidraw-tui/config.json` (shared across all
+- **Global** → `~/.config/excali/config.json` (shared across all
   drawings): UI preferences (theme/dark mode, canvas background, zen/view mode,
   grid, snap) and your imported libraries. Global prefs win over whatever a
   drawing was saved with, so your dark mode sticks on every reload.

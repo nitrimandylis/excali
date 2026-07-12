@@ -10,7 +10,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 
 const dir = mkdtempSync(join(tmpdir(), "excali-"));
-process.env.EXCALIDRAW_TUI_CONFIG = join(dir, "config.json");
+process.env.EXCALI_CONFIG = join(dir, "config.json");
 
 const { serve } = await import("./excali.ts");
 

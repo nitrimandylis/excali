@@ -49,10 +49,11 @@ nick@excali:~$ excali diagram.excalidraw
 Needs [Bun](https://bun.sh) and a browser. Excalidraw loads from a CDN, so you'll want internet.
 
 ```bash
-git clone https://github.com/nitrimandylis/excalidraw-tui.git
-cd excalidraw-tui
-./install.sh              # compiles to ~/.bun/bin/excali + installs the man page
+git clone https://github.com/nitrimandylis/excali.git
+cd excali
+bun run compile          # → ~/.bun/bin/excali, and man excali into your manpath
 excali drawing.excalidraw
+man excali               # full reference, offline
 ```
 
 Prefer to run from source without installing? `./excali.ts drawing.excalidraw` does the same thing straight through Bun. Set `EXCALI_NO_OPEN=1` to skip launching the browser (headless).
@@ -65,7 +66,7 @@ flowchart LR
     S -->|GET /| H[embedded index.html]
     H -->|loads| CDN[Excalidraw @ esm.sh]
     S <-->|GET/POST /scene| F[(file.excalidraw)]
-    S <-->|GET/POST /config| C[(~/.config/excalidraw-tui)]
+    S <-->|GET/POST /config| C[(~/.config/excali)]
     CLI -->|opens| B[your browser]
 ```
 
@@ -73,11 +74,10 @@ flowchart LR
 |---|---|
 | `excali.ts` | the whole thing — CLI arg parsing + `Bun.serve` (host page, scene, config) in one file |
 | `index.html` | the host page; mounts Excalidraw, wires autosave + persistence, embedded into the binary |
-| `install.sh` | `bun build --compile` → `~/.bun/bin`, and drops the man page in your Homebrew manpath |
-| `excali.1` | `man excali` |
+| `man/excali.1` | `man excali`, installed by `bun run compile` |
 | `excali.test.ts` | `bun test` — scene + config round-trip and the "malformed POST can't corrupt the file" guard |
 
-**Stack:** Bun · TypeScript · a single HTML file · Excalidraw (borrowed) · zero dependencies
+**Stack:** Bun · TypeScript · a single HTML file · Excalidraw (borrowed) · zero runtime dependencies (only devDep: `@types/bun`)
 
 ---
 

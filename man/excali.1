@@ -1,4 +1,4 @@
-.TH EXCALI 1 "2026-07-12" "excalidraw-tui" "User Commands"
+.TH EXCALI 1 "2026-07-12" "excali 0.2.0" "User Commands"
 .SH NAME
 excali \- open a .excalidraw file in the real Excalidraw, autosaving to the file
 .SH SYNOPSIS
@@ -30,7 +30,7 @@ Print usage and exit.
 .I file.excalidraw
 The drawing being edited. Holds the elements you draw.
 .TP
-.I ~/.config/excalidraw\-tui/config.json
+.I ~/.config/excali/config.json
 Global config shared across all drawings: UI preferences (theme, canvas
 background, zen/view mode, grid, snap) and your imported libraries. Global
 preferences override whatever a drawing was saved with, so settings like dark
@@ -63,8 +63,3 @@ Project docs in
 .IR PRODUCT.md .
 .br
 Excalidraw: https://excalidraw.com
-.SH NOTES
-Earlier versions had a
-.B \-\-tui
-mode that rendered inside the terminal via Carbonyl; it was dropped because
-terminal\-cell rendering was too coarse for a drawing tool.
