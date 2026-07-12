@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# excli [--tui] <file.excalidraw>
+# excali [--tui] <file.excalidraw>
 #   Open a drawing in the real Excalidraw, autosaving edits back to the file.
 #     default  opens in your browser — crisp, native trackpad pan/zoom.
 #     --tui    renders in this terminal via Carbonyl — blocky; for SSH/headless.
@@ -7,13 +7,13 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-excli — open a .excalidraw file in the real Excalidraw, autosaving to the file.
+excali — open a .excalidraw file in the real Excalidraw, autosaving to the file.
 
 Usage:
-  excli <file.excalidraw>          Open in your browser (crisp, native trackpad).
-  excli --tui <file.excalidraw>    Render in this terminal via Carbonyl (blocky;
+  excali <file.excalidraw>          Open in your browser (crisp, native trackpad).
+  excali --tui <file.excalidraw>    Render in this terminal via Carbonyl (blocky;
                                    for SSH/headless — needs: npm install).
-  excli -h | --help                Show this help.
+  excali -h | --help                Show this help.
 
 Notes:
   - A path that doesn't exist yet starts a blank canvas, created on first save.

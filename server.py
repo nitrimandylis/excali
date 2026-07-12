@@ -4,7 +4,7 @@
 Usage: server.py <file.excalidraw> [port]
 
 Binds to 127.0.0.1. With no port (or 0) the OS picks a free one, which is
-printed on the first stdout line so the `excli` wrapper knows where Carbonyl
+printed on the first stdout line so the `excali` wrapper knows where Carbonyl
 should connect. Localhost-only, single file, no auth.
 """
 

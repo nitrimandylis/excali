@@ -1,15 +1,15 @@
-.TH EXCLI 1 "2026-07-12" "excalidraw-tui" "User Commands"
+.TH EXCALI 1 "2026-07-12" "excalidraw-tui" "User Commands"
 .SH NAME
-excli \- open a .excalidraw file in the real Excalidraw, autosaving to the file
+excali \- open a .excalidraw file in the real Excalidraw, autosaving to the file
 .SH SYNOPSIS
-.B excli
+.B excali
 .RB [ \-\-tui ]
 .I file.excalidraw
 .br
-.B excli
+.B excali
 .RB [ \-h | \-\-help ]
 .SH DESCRIPTION
-.B excli
+.B excali
 opens a drawing in the genuine Excalidraw web app and saves your edits back to
 .I file.excalidraw
 automatically. The terminal acts as the launcher and a small autosave server;
@@ -63,13 +63,13 @@ on macOS arm64 or Linux.
 .SH EXAMPLES
 .TP
 Open a drawing in the browser:
-.B excli diagram.excalidraw
+.B excali diagram.excalidraw
 .TP
 Start a new drawing (created on first save):
-.B excli new-sketch.excalidraw
+.B excali new-sketch.excalidraw
 .TP
 Render inside the terminal over SSH:
-.B excli \-\-tui diagram.excalidraw
+.B excali \-\-tui diagram.excalidraw
 .SH EXIT STATUS
 .TP
 .B 0

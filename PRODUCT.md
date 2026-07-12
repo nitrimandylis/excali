@@ -15,8 +15,8 @@ best kept for SSH/headless boxes where no browser is available.
 ## Usage
 
 ```sh
-./excli drawing.excalidraw          # opens in your browser (recommended)
-./excli --tui drawing.excalidraw    # renders in the terminal (needs: npm install)
+./excali drawing.excalidraw          # opens in your browser (recommended)
+./excali --tui drawing.excalidraw    # renders in the terminal (needs: npm install)
 ```
 
 Draw with the mouse; edits save back to the file automatically (~500ms after
@@ -30,7 +30,7 @@ open while you edit and press **Ctrl-C** when you're done. Only `--tui` needs
 ## How it works
 
 ```
-excli file.excalidraw
+excali file.excalidraw
   └─ server.py (127.0.0.1:PORT, bound to file.excalidraw)
        GET /        → index.html
        GET /scene   → file.excalidraw JSON  (null if new/empty → blank canvas)
@@ -53,7 +53,7 @@ excli file.excalidraw
 Which prefs persist is a whitelist (`PREF_KEYS` in `index.html`) — add a key to
 keep another setting.
 
-Four files: `excli` (wrapper), `server.py` (stdlib server + autosave),
+Four files: `excali` (wrapper), `server.py` (stdlib server + autosave),
 `index.html` (Excalidraw host page), `test_server.py`. Excalidraw and React
 load from the esm.sh CDN, so the only npm dependency is Carbonyl (needed only
 for `--tui`).

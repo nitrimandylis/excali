@@ -4,7 +4,7 @@
   "private": true,
   "description": "Run the real Excalidraw in your terminal via Carbonyl, with autosave back to the file.",
   "bin": {
-    "excli": "./excli"
+    "excali": "./excali"
   },
   "dependencies": {
     "carbonyl": "0.0.2-next.bacf3db"
