@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "description": "Open .excalidraw files from the terminal in the real Excalidraw, with autosave. One Bun script, zero dependencies.",
   "bin": {
     "excali": "./excali.ts"
