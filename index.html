@@ -61,9 +61,13 @@
         }, 500);
       }
 
+      // scrollToContent centers the drawing on open instead of leaving it
+      // wherever it was saved.
+      const initialData = scene ? { ...scene, scrollToContent: true } : null;
+
       const root = createRoot(document.getElementById("app"));
       root.render(
-        React.createElement(Excalidraw, { initialData: scene, onChange })
+        React.createElement(Excalidraw, { initialData, onChange })
       );
     </script>
   </body>
