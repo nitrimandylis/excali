@@ -42,32 +42,83 @@
       import { createRoot } from "react-dom/client";
       import { Excalidraw, serializeAsJSON } from "@excalidraw/excalidraw";
 
-      // The scene the server is bound to. `null` = new/empty file → blank canvas.
-      const scene = await fetch("/scene").then((r) => r.json());
+      // Two things load: the drawing (per-file) and the global config (theme,
+      // prefs, library — shared across every drawing).
+      const [scene, config] = await Promise.all([
+        fetch("/scene").then((r) => r.json()), // null = new/empty file
+        fetch("/config").then((r) => r.json()), // {} if never saved
+      ]);
 
-      let timer = null;
-      function onChange(elements, appState, files) {
-        // Excalidraw fires onChange on every pointer move; only save ~500ms after
-        // the last change. ponytail: a hard kill can drop the last <500ms of
-        // edits — flush-on-exit is the upgrade path.
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-          const json = serializeAsJSON(elements, appState, files, "local");
+      // UI preferences we persist globally. These are appState fields; anything
+      // not here (scroll, zoom, selection) stays per-drawing. Add a key to keep
+      // another setting across reloads.
+      const PREF_KEYS = [
+        "theme",
+        "viewBackgroundColor",
+        "zenModeEnabled",
+        "viewModeEnabled",
+        "gridModeEnabled",
+        "gridSize",
+        "objectsSnapModeEnabled",
+      ];
+      const pickPrefs = (appState) => {
+        const p = {};
+        for (const k of PREF_KEYS) if (k in appState) p[k] = appState[k];
+        return p;
+      };
+
+      const prefs = config.prefs || {};
+      let library = config.libraryItems || [];
+
+      // Drawing autosave (per-file). ponytail: debounced — a hard kill can drop
+      // the last <500ms of edits; flush-on-exit is the upgrade path.
+      let sceneTimer = null;
+      function saveScene(elements, appState, files) {
+        clearTimeout(sceneTimer);
+        sceneTimer = setTimeout(() => {
           fetch("/scene", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: json,
+            body: serializeAsJSON(elements, appState, files, "local"),
           });
         }, 500);
       }
 
-      // scrollToContent centers the drawing on open instead of leaving it
-      // wherever it was saved.
-      const initialData = scene ? { ...scene, scrollToContent: true } : null;
+      // Config autosave (global): prefs + library.
+      let configTimer = null;
+      function saveConfig(appState) {
+        clearTimeout(configTimer);
+        configTimer = setTimeout(() => {
+          fetch("/config", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prefs: pickPrefs(appState), libraryItems: library }),
+          });
+        }, 500);
+      }
+
+      let lastAppState = null;
+      function onChange(elements, appState, files) {
+        lastAppState = appState;
+        saveScene(elements, appState, files);
+        saveConfig(appState);
+      }
+      function onLibraryChange(items) {
+        library = items;
+        if (lastAppState) saveConfig(lastAppState);
+      }
+
+      const initialData = {
+        ...(scene || {}),
+        // Global prefs win over whatever appState the drawing was saved with.
+        appState: { ...((scene && scene.appState) || {}), ...prefs },
+        libraryItems: library,
+        scrollToContent: !!(scene && scene.elements && scene.elements.length),
+      };
 
       const root = createRoot(document.getElementById("app"));
       root.render(
-        React.createElement(Excalidraw, { initialData, onChange })
+        React.createElement(Excalidraw, { initialData, onChange, onLibraryChange })
       );
     </script>
   </body>

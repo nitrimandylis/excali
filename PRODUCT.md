@@ -37,9 +37,21 @@ excli file.excalidraw
        POST /scene  → write file.excalidraw
   └─ browser (default) or carbonyl (--tui) → http://127.0.0.1:PORT/
        └─ index.html loads Excalidraw from esm.sh
-            initialData ← GET /scene
-            onChange (debounced 500ms) → POST /scene  (Excalidraw's own serializer)
+            initialData ← GET /scene + GET /config
+            onChange       (debounced) → POST /scene   (drawing, per-file)
+            onChange/onLib (debounced) → POST /config  (prefs + library, global)
 ```
+
+## Persistence
+
+- **Per-drawing** → the `.excalidraw` file: the elements you draw.
+- **Global** → `~/.config/excalidraw-tui/config.json` (shared across all
+  drawings): UI preferences (theme/dark mode, canvas background, zen/view mode,
+  grid, snap) and your imported libraries. Global prefs win over whatever a
+  drawing was saved with, so your dark mode sticks on every reload.
+
+Which prefs persist is a whitelist (`PREF_KEYS` in `index.html`) — add a key to
+keep another setting.
 
 Four files: `excli` (wrapper), `server.py` (stdlib server + autosave),
 `index.html` (Excalidraw host page), `test_server.py`. Excalidraw and React

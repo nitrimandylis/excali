@@ -9,12 +9,23 @@ should connect. Localhost-only, single file, no auth.
 """
 
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 INDEX = HERE / "index.html"
+
+
+def config_path():
+    """Global config file (theme, prefs, library) — shared across all drawings.
+    Overridable via EXCALIDRAW_TUI_CONFIG (used by the test)."""
+    override = os.environ.get("EXCALIDRAW_TUI_CONFIG")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "excalidraw-tui" / "config.json"
 
 
 def make_handler(scene_path):
@@ -26,22 +37,14 @@ def make_handler(scene_path):
             self.end_headers()
             self.wfile.write(body)
 
-        def do_GET(self):
-            if self.path == "/":
-                self._send(200, INDEX.read_bytes(), "text/html; charset=utf-8")
-            elif self.path == "/scene":
-                # Empty/new file -> `null` so the host page opens a blank canvas.
-                if scene_path.exists() and scene_path.stat().st_size > 0:
-                    self._send(200, scene_path.read_bytes())
-                else:
-                    self._send(200, b"null")
+        def _read_json(self, path, empty):
+            # Serve file contents, or `empty` for a missing/empty file.
+            if path.exists() and path.stat().st_size > 0:
+                self._send(200, path.read_bytes())
             else:
-                self._send(404, b"not found", "text/plain")
+                self._send(200, empty)
 
-        def do_POST(self):
-            if self.path != "/scene":
-                self._send(404, b"not found", "text/plain")
-                return
+        def _write_json(self, path):
             length = int(self.headers.get("Content-Length", 0))
             data = self.rfile.read(length)
             # Validate before writing so a malformed POST can't corrupt the file.
@@ -51,11 +54,32 @@ def make_handler(scene_path):
                 self._send(400, b'{"error":"invalid json"}')
                 return
             # Write to a temp file then atomically replace, so a crash mid-write
-            # never leaves a half-written drawing.
-            tmp = scene_path.parent / (scene_path.name + ".tmp")
+            # never leaves a half-written file.
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.parent / (path.name + ".tmp")
             tmp.write_bytes(data)
-            tmp.replace(scene_path)
+            tmp.replace(path)
             self._send(200, b'{"ok":true}')
+
+        def do_GET(self):
+            if self.path == "/":
+                self._send(200, INDEX.read_bytes(), "text/html; charset=utf-8")
+            elif self.path == "/scene":
+                # `null` -> host page opens a blank canvas.
+                self._read_json(scene_path, b"null")
+            elif self.path == "/config":
+                # `{}` -> host page uses defaults.
+                self._read_json(config_path(), b"{}")
+            else:
+                self._send(404, b"not found", "text/plain")
+
+        def do_POST(self):
+            if self.path == "/scene":
+                self._write_json(scene_path)
+            elif self.path == "/config":
+                self._write_json(config_path())
+            else:
+                self._send(404, b"not found", "text/plain")
 
         def log_message(self, *args):  # ponytail: quiet, shares the terminal with Carbonyl
             pass

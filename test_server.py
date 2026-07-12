@@ -8,10 +8,15 @@ Run: python3 test_server.py
 
 import http.client
 import json
+import os
 import tempfile
 import threading
 from http.server import ThreadingHTTPServer
 from pathlib import Path
+
+# Point the global config at a temp file before importing the server.
+_cfg = Path(tempfile.mkdtemp()) / "config.json"
+os.environ["EXCALIDRAW_TUI_CONFIG"] = str(_cfg)
 
 from server import make_handler
 
@@ -51,6 +56,16 @@ def run():
                  headers={"Content-Type": "application/json"})
     assert conn.getresponse().status == 400
     assert json.loads(tmp.read_text())["elements"][0]["id"] == "b", "file was corrupted"
+
+    # Global config: empty before anything is saved, round-trips after.
+    conn.request("GET", "/config")
+    assert json.loads(conn.getresponse().read()) == {}
+    cfg = {"prefs": {"theme": "dark"}, "libraryItems": [{"id": "lib1"}]}
+    conn.request("POST", "/config", body=json.dumps(cfg),
+                 headers={"Content-Type": "application/json"})
+    assert conn.getresponse().status == 200
+    conn.request("GET", "/config")
+    assert json.loads(conn.getresponse().read())["prefs"]["theme"] == "dark"
 
     httpd.shutdown()
     print("ok")
